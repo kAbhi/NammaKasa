@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
   BarChart2, AlertTriangle, CheckCircle, Clock, Truck, Users,
   MapPin, Shield, LogOut, Package, FileText, ChevronRight, TrendingUp,
@@ -191,6 +191,7 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [toast, setToast] = useState(null);
 
+  // Always read fresh from storage on every render so actions reflect immediately
   const allRequests = requests();
   const allComplaints = complaints();
   const allRoutes = routes();
@@ -198,15 +199,15 @@ export default function AdminPage() {
   const allHouseholds = households();
   const allBlackspots = blackspots();
 
-  const stats = useMemo(() => {
-    const total = allRequests.length;
-    const collected = allRequests.filter(r => r.status === 'collected').length;
-    const pending = allRequests.filter(r => ['pending', 'ready', 'in_progress'].includes(r.status)).length;
-    const missed = allRequests.filter(r => r.status === 'missed').length;
-    const openComplaints = allComplaints.filter(c => c.status === 'open').length;
-    const openBlackspots = allBlackspots.filter(b => b.status !== 'resolved').length;
-    return { total, collected, pending, missed, openComplaints, openBlackspots };
-  }, [allRequests, allComplaints, allBlackspots]);
+  const total = allRequests.length;
+  const stats = {
+    total,
+    collected: allRequests.filter(r => r.status === 'collected').length,
+    pending: allRequests.filter(r => ['pending', 'ready', 'in_progress'].includes(r.status)).length,
+    missed: allRequests.filter(r => r.status === 'missed').length,
+    openComplaints: allComplaints.filter(c => c.status === 'open').length,
+    openBlackspots: allBlackspots.filter(b => b.status !== 'resolved').length,
+  };
 
   const localities = ['whitefield', 'indiranagar', 'koramangala'];
 

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
   Map, CheckCircle, AlertTriangle, Clock, Truck, Package,
   LogOut, ChevronDown, ChevronUp, User, Phone, MapPin, RefreshCw
@@ -162,10 +162,11 @@ function RouteProgressBar({ requests }) {
 }
 
 export default function WorkerPage() {
-  const { currentUser, logout, households, requests, routes, markCollected, reportDelay, updateRouteStatus, refresh } = useApp();
+  const { currentUser, logout, households, requests, routes, markCollected, reportDelay, updateRouteStatus } = useApp();
 
   const [showDelay, setShowDelay] = useState(false);
   const [toast, setToast] = useState(null);
+  const [collecting, setCollecting] = useState(null); // reqId currently being marked
 
   const worker = {
     id: currentUser?.workerId,
@@ -174,53 +175,53 @@ export default function WorkerPage() {
     routeId: currentUser?.routeId,
   };
 
+  // Always read fresh from storage on every render
   const route = routes().find(r => r.id === worker.routeId);
   const allHouseholds = households();
+  const routeRequests = requests().filter(r => r.routeId === worker.routeId);
 
-  const routeRequests = useMemo(() => {
-    return requests().filter(r => r.routeId === worker.routeId);
-  }, [requests, worker.routeId]);
+  // Build the full stop list: real requests + stub entries for households with no request yet
+  const reqHouseIds = new Set(routeRequests.map(r => r.householdId));
+  const stubStops = (route?.stops || [])
+    .filter(hid => !reqHouseIds.has(hid))
+    .map(hid => {
+      const h = allHouseholds.find(hh => hh.id === hid);
+      return h ? {
+        id: `stub_${hid}`,
+        householdId: hid,
+        status: 'pending',
+        address: h.address,
+        street: h.street,
+        residentName: h.name,
+        markedAt: null,
+        collectedAt: null,
+        _isStub: true,
+      } : null;
+    })
+    .filter(Boolean);
 
-  // also include houses in route.stops that don't have a request yet
-  const allStops = useMemo(() => {
-    if (!route) return [];
-    const reqHouseIds = new Set(routeRequests.map(r => r.householdId));
-    const extraStops = (route.stops || [])
-      .filter(hid => !reqHouseIds.has(hid))
-      .map(hid => {
-        const h = allHouseholds.find(hh => hh.id === hid);
-        return h ? {
-          id: `stub_${hid}`,
-          householdId: hid,
-          status: 'pending',
-          address: h.address,
-          street: h.street,
-          residentName: h.name,
-          markedAt: null,
-          collectedAt: null,
-        } : null;
-      })
-      .filter(Boolean);
-
-    return [
-      ...routeRequests,
-      ...extraStops,
-    ].sort((a, b) => {
-      const order = { ready: 0, in_progress: 1, pending: 2, collected: 3, missed: 4 };
-      return (order[a.status] ?? 5) - (order[b.status] ?? 5);
-    });
-  }, [routeRequests, route, allHouseholds]);
+  const allStops = [...routeRequests, ...stubStops].sort((a, b) => {
+    const order = { ready: 0, in_progress: 1, pending: 2, collected: 3, missed: 4 };
+    return (order[a.status] ?? 5) - (order[b.status] ?? 5);
+  });
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
-  const handleCollect = (reqId) => {
-    markCollected(reqId, worker.id);
+  const handleCollect = async (req) => {
+    // Stub stops have no real request ID — guard against silent no-op
+    if (req._isStub) {
+      showToast('Resident has not marked garbage ready yet.');
+      return;
+    }
+    setCollecting(req.id);
+    markCollected(req.id, worker.id);
+    setCollecting(null);
     showToast('✓ Marked as collected!');
   };
 
   const handleDelay = (routeId, mins, reason) => {
     reportDelay(routeId, mins, reason);
-    showToast(`⚠ Delay of ${mins}min reported to residents.`);
+    showToast(`⚠ Delay of ${mins} min reported.`);
   };
 
   const handleStartRoute = () => {
@@ -231,6 +232,11 @@ export default function WorkerPage() {
   const handleCompleteRoute = () => {
     updateRouteStatus(route.id, 'completed');
     showToast('✓ Route marked as complete!');
+  };
+
+  const handleReopenRoute = () => {
+    updateRouteStatus(route.id, 'in_progress');
+    showToast('Route reopened.');
   };
 
   const readyCount = allStops.filter(r => r.status === 'ready').length;
@@ -298,7 +304,7 @@ export default function WorkerPage() {
               </>
             )}
             {route?.status === 'completed' && (
-              <button onClick={() => updateRouteStatus(route.id, 'in_progress')} className="flex-1 bg-white/20 text-white font-semibold py-2 rounded-xl text-sm border border-white/30">
+              <button onClick={handleReopenRoute} className="flex-1 bg-white/20 text-white font-semibold py-2 rounded-xl text-sm border border-white/30">
                 Reopen Route
               </button>
             )}
@@ -344,8 +350,8 @@ export default function WorkerPage() {
                     key={req.id}
                     request={req}
                     household={h}
-                    onCollect={handleCollect}
-                    isWorking={false}
+                    onCollect={() => handleCollect(req)}
+                    isWorking={collecting === req.id}
                   />
                 );
               })}

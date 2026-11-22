@@ -64,8 +64,11 @@ function pastDate(daysAgo) {
   return d.toISOString();
 }
 
+// Bump this version string to force a re-seed for users with stale data
+const SEED_VERSION = 'v2';
+
 export function seedData() {
-  if (getItem('nk_seeded')) return; // already seeded
+  if (getItem('nk_seeded') === SEED_VERSION) return; // already seeded at this version
 
   // ── Workers ──────────────────────────────────────────────────────────────
   const workers = [
@@ -137,24 +140,35 @@ export function seedData() {
 
   // ── Collection Requests ───────────────────────────────────────────────────
   const requests = [
+    // Whitefield (r1) — h1 ready, h2 ready, h3 collected, h4 pending, h5 ready
     { id: 'req1', householdId: 'h1', locality: 'whitefield', street: 'ITPL Main Road', address: '#12, Sai Residency', residentName: 'Priya Sharma', status: 'ready', markedAt: pastDate(0), collectedAt: null, workerId: 'w1', routeId: 'r1' },
     { id: 'req2', householdId: 'h2', locality: 'whitefield', street: 'ITPL Main Road', address: '#45, Green Apartments', residentName: 'Arun Nair', status: 'ready', markedAt: pastDate(0), collectedAt: null, workerId: 'w1', routeId: 'r1' },
     { id: 'req3', householdId: 'h3', locality: 'whitefield', street: 'Varthur Main Road', address: '#7, Sunrise Villa', residentName: 'Deepa Reddy', status: 'collected', markedAt: pastDate(1), collectedAt: pastDate(0), workerId: 'w1', routeId: 'r1' },
-    { id: 'req4', householdId: 'h6', locality: 'indiranagar', street: '100 Feet Road', address: '#88, Landmark Building', residentName: 'Vikram Singh', status: 'pending', markedAt: null, collectedAt: null, workerId: 'w2', routeId: 'r2' },
-    { id: 'req5', householdId: 'h10', locality: 'koramangala', street: '5th Block', address: '#1A, Forum Residency', residentName: 'Kiran Kumar', status: 'collected', markedAt: pastDate(2), collectedAt: pastDate(1), workerId: 'w3', routeId: 'r3' },
-    { id: 'req6', householdId: 'h11', locality: 'koramangala', street: '7th Block', address: '#34, Tech Park Layout', residentName: 'Divya Krishnan', status: 'collected', markedAt: pastDate(2), collectedAt: pastDate(1), workerId: 'w3', routeId: 'r3' },
-    { id: 'req7', householdId: 'h12', locality: 'koramangala', street: '80 Feet Road', address: '#90, Imperial Heights', residentName: 'Sanjay Mehta', status: 'missed', markedAt: pastDate(4), collectedAt: null, workerId: 'w3', routeId: 'r3' },
-    { id: 'req8', householdId: 'h7', locality: 'indiranagar', street: 'CMH Road', address: '#15, Trinity Apartments', residentName: 'Meera Iyer', status: 'pending', markedAt: null, collectedAt: null, workerId: 'w2', routeId: 'r2' },
+    { id: 'req4', householdId: 'h4', locality: 'whitefield', street: 'Kadugodi Main Road', address: '#23, Kaveri Flats', residentName: 'Mohan Kumar', status: 'pending', markedAt: null, collectedAt: null, workerId: 'w1', routeId: 'r1' },
+    { id: 'req5', householdId: 'h5', locality: 'whitefield', street: 'Hope Farm Junction', address: '#3, Prestige Towers A', residentName: 'Ananya Patel', status: 'ready', markedAt: pastDate(0), collectedAt: null, workerId: 'w1', routeId: 'r1' },
+    // Indiranagar (r2) — h6 pending, h7 pending, h8 pending, h9 ready
+    { id: 'req6', householdId: 'h6', locality: 'indiranagar', street: '100 Feet Road', address: '#88, Landmark Building', residentName: 'Vikram Singh', status: 'pending', markedAt: null, collectedAt: null, workerId: 'w2', routeId: 'r2' },
+    { id: 'req7', householdId: 'h7', locality: 'indiranagar', street: 'CMH Road', address: '#15, Trinity Apartments', residentName: 'Meera Iyer', status: 'pending', markedAt: null, collectedAt: null, workerId: 'w2', routeId: 'r2' },
+    { id: 'req8', householdId: 'h8', locality: 'indiranagar', street: 'HAL 2nd Stage', address: '#62, HAL Colony', residentName: 'Rahul Gupta', status: 'pending', markedAt: null, collectedAt: null, workerId: 'w2', routeId: 'r2' },
+    { id: 'req9', householdId: 'h9', locality: 'indiranagar', street: '12th Main Road', address: '#5, Olive Residency', residentName: 'Sunita Rao', status: 'ready', markedAt: pastDate(0), collectedAt: null, workerId: 'w2', routeId: 'r2' },
+    // Koramangala (r3) — h10 collected, h11 collected, h12 missed, h13 collected
+    { id: 'req10', householdId: 'h10', locality: 'koramangala', street: '5th Block', address: '#1A, Forum Residency', residentName: 'Kiran Kumar', status: 'collected', markedAt: pastDate(2), collectedAt: pastDate(1), workerId: 'w3', routeId: 'r3' },
+    { id: 'req11', householdId: 'h11', locality: 'koramangala', street: '7th Block', address: '#34, Tech Park Layout', residentName: 'Divya Krishnan', status: 'collected', markedAt: pastDate(2), collectedAt: pastDate(1), workerId: 'w3', routeId: 'r3' },
+    { id: 'req12', householdId: 'h12', locality: 'koramangala', street: '80 Feet Road', address: '#90, Imperial Heights', residentName: 'Sanjay Mehta', status: 'missed', markedAt: pastDate(4), collectedAt: null, workerId: 'w3', routeId: 'r3' },
+    { id: 'req13', householdId: 'h13', locality: 'koramangala', street: 'Sarjapur Road', address: '#56, Lotus Pond Apt', residentName: 'Pooja Nambiar', status: 'collected', markedAt: pastDate(2), collectedAt: pastDate(1), workerId: 'w3', routeId: 'r3' },
   ];
   setRequests(requests);
 
-  // also mark h1 and h2 as garbageReady since they have ready requests
+  // Sync household garbageReady flags and lastCollected with the request states above
   const updatedH = [...hData.map(h => ({ ...h, garbageReady: false, lastCollected: pastDate(3), createdAt: pastDate(90) }))];
-  updatedH.find(h => h.id === 'h1').garbageReady = true;
-  updatedH.find(h => h.id === 'h2').garbageReady = true;
-  updatedH.find(h => h.id === 'h3').lastCollected = pastDate(0);
-  updatedH.find(h => h.id === 'h10').lastCollected = pastDate(1);
-  updatedH.find(h => h.id === 'h11').lastCollected = pastDate(1);
+  // mark ready
+  ['h1', 'h2', 'h5', 'h9'].forEach(id => {
+    updatedH.find(h => h.id === id).garbageReady = true;
+  });
+  // mark recently collected
+  ['h3', 'h10', 'h11', 'h13'].forEach(id => {
+    updatedH.find(h => h.id === id).lastCollected = pastDate(1);
+  });
   setHouseholds(updatedH);
 
   // ── Complaints ────────────────────────────────────────────────────────────
@@ -173,5 +187,5 @@ export function seedData() {
   ];
   setBlackspots(blackspots);
 
-  setItem('nk_seeded', true);
+  setItem('nk_seeded', SEED_VERSION);
 }
