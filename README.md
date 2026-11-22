@@ -1,4 +1,4 @@
-# NammaKasa 🗑️
+# NammaParisara 🗑️
 
 **Bengaluru's Smart Household Waste Coordination App**
 

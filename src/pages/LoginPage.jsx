@@ -213,7 +213,7 @@ export default function LoginPage() {
           </div>
 
           <p className="text-center text-xs text-gray-400 mt-6">
-            NammaKasa · BBMP Solid Waste Management · Bengaluru
+            NammaParisara · BBMP Solid Waste Management · Bengaluru
           </p>
         </div>
       </div>

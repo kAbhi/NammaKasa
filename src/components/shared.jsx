@@ -8,7 +8,7 @@ export function Logo({ size = 'md' }) {
       <div className="bg-green-600 text-white p-1.5 rounded-xl">
         <Trash2 size={size === 'sm' ? 16 : size === 'md' ? 20 : 24} />
       </div>
-      <span className="text-gray-900">Namma<span className="text-green-600">Kasa</span></span>
+      <span className="text-gray-900">Namma<span className="text-green-600">Parisara</span></span>
     </div>
   );
 }
