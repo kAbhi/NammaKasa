@@ -1,10 +1,13 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { seedData } from './data/seed';
 import LoginPage from './pages/LoginPage';
 import ResidentPage from './pages/ResidentPage';
 import WorkerPage from './pages/WorkerPage';
 import AdminPage from './pages/AdminPage';
+
+// Seed before anything renders so LoginPage has data on first paint
+seedData();
 
 function AppRouter() {
   const { currentUser } = useApp();
@@ -20,10 +23,6 @@ function AppRouter() {
 }
 
 export default function App() {
-  useEffect(() => {
-    seedData(); // idempotent – only runs once
-  }, []);
-
   return (
     <AppProvider>
       <AppRouter />
