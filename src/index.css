@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  }
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 px-5 rounded-xl transition-all duration-200 active:scale-95 shadow-sm;
+  }
+  .btn-secondary {
+    @apply bg-white hover:bg-gray-50 text-gray-700 font-semibold py-2.5 px-5 rounded-xl border border-gray-200 transition-all duration-200 active:scale-95;
+  }
+  .btn-danger {
+    @apply bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 px-5 rounded-xl transition-all duration-200 active:scale-95;
+  }
+  .card {
+    @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-4;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold;
+  }
+  .badge-green {
+    @apply badge bg-green-100 text-green-700;
+  }
+  .badge-yellow {
+    @apply badge bg-yellow-100 text-yellow-700;
+  }
+  .badge-red {
+    @apply badge bg-red-100 text-red-700;
+  }
+  .badge-blue {
+    @apply badge bg-blue-100 text-blue-700;
+  }
+  .badge-gray {
+    @apply badge bg-gray-100 text-gray-600;
+  }
+  .input {
+    @apply w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white;
+  }
+  .select {
+    @apply w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white appearance-none;
+  }
+  .tab-active {
+    @apply bg-green-600 text-white;
+  }
+  .tab-inactive {
+    @apply text-gray-500 hover:text-gray-700;
+  }
+}
