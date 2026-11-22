@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
   Home, Calendar, AlertTriangle, CheckCircle, Camera,
-  Clock, MapPin, Leaf, LogOut, Package
+  Clock, MapPin, Leaf, LogOut, Package, Truck
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Logo, StatusBadge, formatDate, Modal, EmptyState, formatFullDate } from '../components/shared';
@@ -302,13 +302,8 @@ export default function ResidentPage() {
   const schedule = schedules().find(s => s.locality === locality);
   const route = routes().find(r => r.locality === locality);
 
-  const myRequests = useMemo(() => {
-    return requests().filter(r => r.householdId === currentUser?.householdId);
-  }, [requests, currentUser]);
-
-  const myComplaints = useMemo(() => {
-    return complaints().filter(c => c.householdId === currentUser?.householdId);
-  }, [complaints, currentUser]);
+  const myRequests = requests().filter(r => r.householdId === currentUser?.householdId);
+  const myComplaints = complaints().filter(c => c.householdId === currentUser?.householdId);
 
   const showToast = (msg) => {
     setToast(msg);
