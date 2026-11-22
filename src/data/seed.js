@@ -1,6 +1,7 @@
 import {
   KEYS, getItem, setItem,
-  setHouseholds, setRequests, setComplaints, setRoutes, setWorkers, setSchedules, setBlackspots
+  setHouseholds, setRequests, setComplaints, setRoutes, setWorkers, setSchedules, setBlackspots,
+  setCommunityDrives
 } from './storage';
 
 export const LOCALITIES = {
@@ -45,6 +46,61 @@ export const COLLECTION_DAYS = {
   koramangala: ['Wednesday', 'Saturday'],
 };
 
+export const COMMUNITY_WASTE_CATEGORIES = [
+  {
+    id: 'e-waste',
+    label: 'E-Waste',
+    shortLabel: 'E-Waste',
+    examples: 'Old phones, laptops, chargers, cables, CFL/LED bulbs',
+    color: 'bg-purple-100 text-purple-800',
+    dot: 'bg-purple-500',
+  },
+  {
+    id: 'hazardous',
+    label: 'Hazardous & Batteries',
+    shortLabel: 'Hazardous',
+    examples: 'AA/lithium batteries, expired medicines, paint cans',
+    color: 'bg-red-100 text-red-800',
+    dot: 'bg-red-500',
+  },
+  {
+    id: 'textiles',
+    label: 'Textiles & Clothes',
+    shortLabel: 'Textiles',
+    examples: 'Wearable clothes, bedsheets, torn fabric for recycling',
+    color: 'bg-orange-100 text-orange-800',
+    dot: 'bg-orange-500',
+  },
+  {
+    id: 'mlp-thermocol',
+    label: 'Thermocol & MLP',
+    shortLabel: 'Thermocol / MLP',
+    examples: 'Clean packaging foam, chip packets, multi-layer plastics',
+    color: 'bg-blue-100 text-blue-800',
+    dot: 'bg-blue-500',
+  },
+  {
+    id: 'bulky-cd',
+    label: 'Bulky & C&D Debris',
+    shortLabel: 'Bulky / C&D',
+    examples: 'Old furniture, mattresses, small renovation tiles/rubble',
+    color: 'bg-stone-100 text-stone-800',
+    dot: 'bg-stone-500',
+  },
+];
+
+function futureDateISO(daysAhead) {
+  const d = new Date();
+  d.setDate(d.getDate() + daysAhead);
+  return d.toISOString().split('T')[0];
+}
+
+function pastDateISO(daysAgo) {
+  const d = new Date();
+  d.setDate(d.getDate() - daysAgo);
+  return d.toISOString().split('T')[0];
+}
+
 // Day offset helper: returns next upcoming day-of-week
 function nextDate(dayName) {
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -68,6 +124,98 @@ function pastDate(daysAgo) {
 const SEED_VERSION = 'v2';
 
 export function seedData() {
+  // Always ensure community drives are seeded even for existing localStorage sessions
+  if (getItem(KEYS.COMMUNITY_DRIVES) === null) {
+    const communityDrives = [
+      {
+        id: 'cd1',
+        title: 'Whitefield Weekend E-Waste Drive',
+        category: 'e-waste',
+        locality: 'whitefield',
+        dropoffLocation: 'Sai Residency Main Gate, ITPL Main Road',
+        date: futureDateISO(4),
+        timeWindow: '9:00 AM – 12:30 PM',
+        organizerHouseholdId: 'h2',
+        organizerName: 'Arun Nair',
+        partner: 'Saahas Zero Waste (Certified E-Waste Recycler)',
+        acceptedItems: 'Old phones, laptops, chargers, keyboards, routers, and unbroken CFL/LED bulbs. Please wipe device data beforehand.',
+        targetHouseholds: 10,
+        status: 'upcoming',
+        createdAt: pastDate(2),
+        participants: [
+          { householdId: 'h2', name: 'Arun Nair', address: '#45, Green Apartments', pledgedItems: '1 old laptop, 2 routers, assorted cables', joinedAt: pastDate(2) },
+          { householdId: 'h3', name: 'Deepa Reddy', address: '#7, Sunrise Villa', pledgedItems: '3 old smartphones, 1 power bank', joinedAt: pastDate(1) },
+          { householdId: 'h5', name: 'Ananya Patel', address: '#3, Prestige Towers A', pledgedItems: 'Old printer & 4 chargers', joinedAt: pastDate(1) },
+        ],
+      },
+      {
+        id: 'cd2',
+        title: 'Indiranagar Batteries & Expired Meds Drop-off',
+        category: 'hazardous',
+        locality: 'indiranagar',
+        dropoffLocation: 'HAL Colony Park Entrance, HAL 2nd Stage',
+        date: futureDateISO(6),
+        timeWindow: '10:00 AM – 1:00 PM',
+        organizerHouseholdId: 'h7',
+        organizerName: 'Meera Iyer',
+        partner: 'Hasiru Dala Hazardous Waste Partner',
+        acceptedItems: 'Household AA/AAA/lithium batteries (tape terminals), expired medicine strips, and sealed leftover paint tins.',
+        targetHouseholds: 8,
+        status: 'upcoming',
+        createdAt: pastDate(3),
+        participants: [
+          { householdId: 'h7', name: 'Meera Iyer', address: '#15, Trinity Apartments', pledgedItems: '2 boxes of used AA batteries, expired syrups', joinedAt: pastDate(3) },
+          { householdId: 'h8', name: 'Rahul Gupta', address: '#62, HAL Colony', pledgedItems: '1 laptop battery, 2 half-used paint cans', joinedAt: pastDate(1) },
+        ],
+      },
+      {
+        id: 'cd3',
+        title: 'Koramangala Clean Thermocol & MLP Collection',
+        category: 'mlp-thermocol',
+        locality: 'koramangala',
+        dropoffLocation: 'Forum Residency Clubhouse, 5th Block',
+        date: futureDateISO(9),
+        timeWindow: '8:30 AM – 11:30 AM',
+        organizerHouseholdId: 'h10',
+        organizerName: 'Kiran Kumar',
+        partner: 'Eco-Recycle Bengaluru (Co-processing)',
+        acceptedItems: 'Clean appliance thermocol blocks, washed & dried chip/biscuit wrappers, and courier poly-mailers.',
+        targetHouseholds: 12,
+        status: 'upcoming',
+        createdAt: pastDate(1),
+        participants: [
+          { householdId: 'h10', name: 'Kiran Kumar', address: '#1A, Forum Residency', pledgedItems: 'TV packaging thermocol & 2 bags of clean MLP', joinedAt: pastDate(1) },
+          { householdId: 'h11', name: 'Divya Krishnan', address: '#34, Tech Park Layout', pledgedItems: '3 bags of dried multi-layer plastic wrappers', joinedAt: pastDate(0) },
+        ],
+      },
+      {
+        id: 'cd4',
+        title: 'Whitefield Pre-Monsoon Textile & Clothes Drive',
+        category: 'textiles',
+        locality: 'whitefield',
+        dropoffLocation: 'Kaveri Flats Community Hall, Kadugodi Main Road',
+        date: pastDateISO(5),
+        timeWindow: '9:00 AM – 12:00 PM',
+        organizerHouseholdId: 'h4',
+        organizerName: 'Mohan Kumar',
+        partner: 'Goonj Bengaluru Collection Centre',
+        acceptedItems: 'Washed wearable clothes, bedsheets, and torn cotton fabrics bundled separately for industrial rag recycling.',
+        targetHouseholds: 6,
+        status: 'completed',
+        createdAt: pastDate(12),
+        participants: [
+          { householdId: 'h4', name: 'Mohan Kumar', address: '#23, Kaveri Flats', pledgedItems: '2 cartons of winter wear & bedsheets', joinedAt: pastDate(12) },
+          { householdId: 'h1', name: 'Priya Sharma', address: '#12, Sai Residency', pledgedItems: '1 bag of kids clothes & old sarees', joinedAt: pastDate(9) },
+          { householdId: 'h2', name: 'Arun Nair', address: '#45, Green Apartments', pledgedItems: 'Old denim jeans & cotton rags', joinedAt: pastDate(8) },
+          { householdId: 'h3', name: 'Deepa Reddy', address: '#7, Sunrise Villa', pledgedItems: 'Curtains and towels', joinedAt: pastDate(7) },
+          { householdId: 'h5', name: 'Ananya Patel', address: '#3, Prestige Towers A', pledgedItems: '2 bags of office wear', joinedAt: pastDate(6) },
+          { householdId: 'h6', name: 'Vikram Singh', address: '#88, Landmark Building', pledgedItems: 'Blankets and jackets', joinedAt: pastDate(6) },
+        ],
+      },
+    ];
+    setCommunityDrives(communityDrives);
+  }
+
   if (getItem('nk_seeded') === SEED_VERSION) return; // already seeded at this version
 
   // ── Workers ──────────────────────────────────────────────────────────────

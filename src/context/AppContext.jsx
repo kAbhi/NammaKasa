@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import {
   getHouseholds, getRequests, getComplaints, getRoutes, getWorkers, getSchedules, getBlackspots,
-  getCurrentUser, setCurrentUser,
+  getCommunityDrives, getCurrentUser, setCurrentUser,
   updateHousehold, addRequest, updateRequest, addComplaint, updateComplaint, updateRoute, addBlackspot,
-  setBlackspots, genId
+  setBlackspots, addCommunityDrive, updateCommunityDrive, genId
 } from '../data/storage';
 
 const AppContext = createContext(null);
@@ -33,6 +33,7 @@ export function AppProvider({ children }) {
   const workers = useCallback(() => getWorkers(), [refreshTick]);
   const schedules = useCallback(() => getSchedules(), [refreshTick]);
   const blackspots = useCallback(() => getBlackspots(), [refreshTick]);
+  const communityDrives = useCallback(() => getCommunityDrives(), [refreshTick]);
 
   // ── Resident actions ──────────────────────────────────────────────────────
   const markGarbageReady = useCallback((householdId) => {
@@ -132,6 +133,70 @@ export function AppProvider({ children }) {
     refresh();
   }, [refresh]);
 
+  // ── Community Drive actions ──────────────────────────────────────────────
+  const createCommunityDrive = useCallback((driveData, organizerHousehold) => {
+    const drive = {
+      id: genId('cd'),
+      title: driveData.title.trim(),
+      category: driveData.category,
+      locality: driveData.locality,
+      dropoffLocation: driveData.dropoffLocation.trim(),
+      date: driveData.date,
+      timeWindow: driveData.timeWindow.trim() || '9:00 AM – 12:00 PM',
+      organizerHouseholdId: organizerHousehold.id,
+      organizerName: organizerHousehold.name,
+      partner: driveData.partner?.trim() || 'Resident-coordinated recycler drop-off',
+      acceptedItems: driveData.acceptedItems.trim(),
+      targetHouseholds: Math.max(2, Number(driveData.targetHouseholds) || 10),
+      status: 'upcoming',
+      createdAt: new Date().toISOString(),
+      participants: [
+        {
+          householdId: organizerHousehold.id,
+          name: organizerHousehold.name,
+          address: organizerHousehold.address,
+          pledgedItems: driveData.organizerPledge?.trim() || 'Organizing & hosting collection point',
+          joinedAt: new Date().toISOString(),
+        },
+      ],
+    };
+    addCommunityDrive(drive);
+    refresh();
+    return drive;
+  }, [refresh]);
+
+  const joinCommunityDrive = useCallback((driveId, household, pledgedItems) => {
+    const drive = getCommunityDrives().find(d => d.id === driveId);
+    if (!drive || drive.status !== 'upcoming') return;
+    const alreadyJoined = drive.participants.some(p => p.householdId === household.id);
+    if (alreadyJoined) return;
+    const updatedParticipants = [
+      ...drive.participants,
+      {
+        householdId: household.id,
+        name: household.name,
+        address: household.address,
+        pledgedItems: pledgedItems?.trim() || 'Contributing accepted items',
+        joinedAt: new Date().toISOString(),
+      },
+    ];
+    updateCommunityDrive(driveId, { participants: updatedParticipants });
+    refresh();
+  }, [refresh]);
+
+  const leaveCommunityDrive = useCallback((driveId, householdId) => {
+    const drive = getCommunityDrives().find(d => d.id === driveId);
+    if (!drive || drive.organizerHouseholdId === householdId) return;
+    const updatedParticipants = drive.participants.filter(p => p.householdId !== householdId);
+    updateCommunityDrive(driveId, { participants: updatedParticipants });
+    refresh();
+  }, [refresh]);
+
+  const updateCommunityDriveStatus = useCallback((driveId, status) => {
+    updateCommunityDrive(driveId, { status });
+    refresh();
+  }, [refresh]);
+
   // ── Worker actions ────────────────────────────────────────────────────────
   const markCollected = useCallback((requestId, workerId) => {
     const req = updateRequest(requestId, {
@@ -182,8 +247,9 @@ export function AppProvider({ children }) {
     <AppContext.Provider value={{
       currentUser,
       login, logout,
-      households, requests, complaints, routes, workers, schedules, blackspots,
+      households, requests, complaints, routes, workers, schedules, blackspots, communityDrives,
       markGarbageReady, unmarkGarbageReady, confirmCollection, reportMissedCollection, reportBlackspot,
+      createCommunityDrive, joinCommunityDrive, leaveCommunityDrive, updateCommunityDriveStatus,
       markCollected, reportDelay, updateRouteStatus,
       resolveComplaint, updateBlackspot,
       refresh,

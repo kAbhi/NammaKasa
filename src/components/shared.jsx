@@ -26,6 +26,7 @@ export function StatusBadge({ status }) {
     resolved: { label: 'Resolved', cls: 'badge-green' },
     not_started: { label: 'Not Started', cls: 'badge-gray' },
     completed: { label: 'Completed', cls: 'badge-green' },
+    upcoming: { label: 'Upcoming', cls: 'badge-blue' },
     active: { label: 'Active', cls: 'badge-green' },
     high: { label: 'High', cls: 'badge-red' },
     medium: { label: 'Medium', cls: 'badge-yellow' },

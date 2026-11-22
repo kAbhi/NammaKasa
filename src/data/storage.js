@@ -7,6 +7,7 @@ export const KEYS = {
   WORKERS: 'nk_workers',
   SCHEDULES: 'nk_schedules',
   BLACKSPOTS: 'nk_blackspots',
+  COMMUNITY_DRIVES: 'nk_community_drives',
   CURRENT_USER: 'nk_current_user',
 };
 
@@ -107,6 +108,25 @@ export function addBlackspot(b) {
   list.unshift(b);
   setBlackspots(list);
   return b;
+}
+
+export function getCommunityDrives() { return getItem(KEYS.COMMUNITY_DRIVES) || []; }
+export function setCommunityDrives(d) { setItem(KEYS.COMMUNITY_DRIVES, d); }
+export function addCommunityDrive(drive) {
+  const list = getCommunityDrives();
+  list.unshift(drive);
+  setCommunityDrives(list);
+  return drive;
+}
+export function updateCommunityDrive(id, patch) {
+  const list = getCommunityDrives();
+  const idx = list.findIndex(d => d.id === id);
+  if (idx !== -1) {
+    list[idx] = { ...list[idx], ...patch };
+    setCommunityDrives(list);
+    return list[idx];
+  }
+  return null;
 }
 
 export function getCurrentUser() { return getItem(KEYS.CURRENT_USER); }

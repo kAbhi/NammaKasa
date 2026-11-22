@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import {
   Home, Calendar, AlertTriangle, CheckCircle, Camera,
-  Clock, MapPin, Leaf, LogOut, Package, Truck
+  Clock, MapPin, Leaf, LogOut, Package, Truck, Users, ChevronRight
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Logo, StatusBadge, formatDate, Modal, EmptyState, formatFullDate } from '../components/shared';
 import { LOCALITIES, COLLECTION_DAYS } from '../data/seed';
 import WasteAssistant from './WasteAssistant';
+import CommunityPage from './CommunityPage';
 
 function getNextCollectionDays(locality) {
   const days = COLLECTION_DAYS[locality] || [];
@@ -289,7 +290,7 @@ function MyHistoryTab({ requests, complaints }) {
 }
 
 export default function ResidentPage() {
-  const { currentUser, logout, households, requests, complaints, schedules, routes,
+  const { currentUser, logout, households, requests, complaints, schedules, routes, communityDrives,
     markGarbageReady, unmarkGarbageReady, confirmCollection, reportMissedCollection, reportBlackspot } = useApp();
 
   const [activeTab, setActiveTab] = useState('home');
@@ -304,6 +305,9 @@ export default function ResidentPage() {
 
   const myRequests = requests().filter(r => r.householdId === currentUser?.householdId);
   const myComplaints = complaints().filter(c => c.householdId === currentUser?.householdId);
+  const nextLocalDrive = communityDrives()
+    .filter(d => d.locality === locality && d.status === 'upcoming')
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''))[0];
 
   const showToast = (msg) => {
     setToast(msg);
@@ -337,6 +341,7 @@ export default function ResidentPage() {
 
   const tabs = [
     { id: 'home', label: 'Home', icon: Home },
+    { id: 'community', label: 'Community', icon: Users },
     { id: 'history', label: 'History', icon: Clock },
     { id: 'assistant', label: 'Kasa AI', icon: Leaf },
   ];
@@ -380,6 +385,37 @@ export default function ResidentPage() {
               onConfirm={handleConfirm}
             />
 
+            {/* Community Drive Highlight */}
+            <button
+              onClick={() => setActiveTab('community')}
+              className="card w-full text-left hover:border-green-300 transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl flex-shrink-0">
+                  <Users size={20} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-purple-700 uppercase tracking-wide">
+                    Community Non-BBMP Drive
+                  </p>
+                  {nextLocalDrive ? (
+                    <>
+                      <p className="text-sm font-bold text-gray-900 truncate mt-0.5">{nextLocalDrive.title}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {nextLocalDrive.participants.length} joined · {nextLocalDrive.timeWindow}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm font-bold text-gray-900 mt-0.5">Organize E-Waste &amp; Special Drives</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Pool items BBMP doesn&apos;t collect with neighbours</p>
+                    </>
+                  )}
+                </div>
+                <ChevronRight size={18} className="text-gray-400 flex-shrink-0" />
+              </div>
+            </button>
+
             {/* Quick Actions */}
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Report Issues</p>
@@ -419,6 +455,10 @@ export default function ResidentPage() {
               </div>
             )}
           </div>
+        )}
+
+        {activeTab === 'community' && (
+          <CommunityPage household={household} showToast={showToast} />
         )}
 
         {activeTab === 'history' && (
