@@ -338,7 +338,7 @@ export default function ResidentPage() {
   const tabs = [
     { id: 'home', label: 'Home', icon: Home },
     { id: 'history', label: 'History', icon: Clock },
-    { id: 'assistant', label: 'AI Guide', icon: Leaf },
+    { id: 'assistant', label: 'Kasa AI', icon: Leaf },
   ];
 
   if (!household) return <div className="p-8 text-center text-gray-500">Household not found</div>;
